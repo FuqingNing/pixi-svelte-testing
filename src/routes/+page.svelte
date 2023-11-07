@@ -1,7 +1,19 @@
 <script lang="ts">
-    import { App, Text } from "pixi-svelte";
+  import { browser } from "$app/environment";
+
+  let component = undefined;
+
+   $: if(browser) {
+       import("./Pixi.svelte").then(data => {
+           component = data.default
+       });
+   }
+
+   $: console.log({ component });
 </script>
 
-<App>
-    <Text value="Hello world." />
-</App>
+abc
+
+{#if browser && component}
+    <svelte:component this={component} />
+{/if}

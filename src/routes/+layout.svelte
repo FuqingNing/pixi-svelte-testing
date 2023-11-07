@@ -1,4 +1,6 @@
-<script>
+<slot />
+
+<!-- <script>
 	import Header from './Header.svelte';
 	import './styles.css';
 </script>
@@ -50,4 +52,4 @@
 			padding: 12px 0;
 		}
 	}
-</style>
+</style> -->
