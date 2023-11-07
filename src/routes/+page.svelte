@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { browser } from "$app/environment";
 
   let component = undefined;
@@ -16,4 +16,13 @@ abc
 
 {#if browser && component}
     <svelte:component this={component} />
-{/if}
+{/if} -->
+
+
+<script lang="ts">
+  import Pixi from './Pixi.svelte';
+</script>
+
+abc
+
+<Pixi />
