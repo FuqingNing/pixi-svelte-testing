@@ -1,6 +1,4 @@
-import { writable } from 'svelte/store'
-import type { Writable } from 'svelte/store'
-import { rows, columns, mineCount, cellSize } from './gameConstant';
+import { rows, columns } from './gameConstant';
 
 export function initialize(rows: number, columns: number, mineCount: number) {
   const board = []
@@ -65,12 +63,11 @@ export function getAdjacentMines(
   return count
 }
 export function revealCell(
-  board: any[], // 更好的是使用具体的类型而非 any
+  board: any[], 
   x: number,
   y: number,
   setIsGameOver: (isGameOver: boolean) => void
 ) {
-  // 检查坐标是否在边界内
   if (x < 0 || x >= columns || y < 0 || y >= rows) return;
 
   let cell = board[y][x];
@@ -102,22 +99,6 @@ export function revealCell(
         if (newX >= 0 && newX < columns && newY >= 0 && newY < rows) {
           revealCell(board, newX, newY, setIsGameOver);
         }
-      }
-    }
-  }
-}
-export function gameOver(
-  board: any[],
-  setIsGameOver: (value: boolean) => void,
-  rows: number,
-  columns: number
-) {
-  alert('Game Over!');
-  setIsGameOver(true);
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < columns; x++) {
-      if (board[y][x].hasMine) {
-        board[y][x].status = 'open';
       }
     }
   }

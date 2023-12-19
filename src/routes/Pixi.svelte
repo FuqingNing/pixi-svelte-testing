@@ -28,12 +28,12 @@
     }
   });
 
+  
   function handleRectangleClick(x:any, y:any, event:any) {
 	if (isGameOver) return;
     boardStore.update((board) => {
       const newBoard = board.map(row => [...row]);
       const cell = newBoard[y][x];
-
       if (mode === 'flag') {
         cell.status = cell.status === 'closed' ? 'flagged' : 'closed';
       } else if (mode === 'reveal' && cell.status === 'closed') {
@@ -56,42 +56,6 @@
     mode = mode === 'reveal' ? 'flag' : 'reveal';
   }
 
-//   function revealCell(board: any, x: any, y: any) {
-//   // Check if coordinates are within the board boundaries
-//   if (x < 0 || x >= columns || y < 0 || y >= rows) return;
-  
-//   let cell = board[y][x];
-
-//   // Return if the cell is already open or flagged
-//   if (cell.status !== 'closed') return;
-
-//   // Open the cell
-//   cell.status = 'open';
-
-//   // Handle the case when a mine is clicked
-//   if (cell.hasMine) {
-//     alert('Game Over!');
-//     isGameOver = true;
-//     // Reveal all mines
-//     board.forEach((row, rowIndex) => {
-//       row.forEach((cell, colIndex) => {
-//         if (cell.hasMine) {
-//           cell.status = 'open';
-//         }
-//       });
-//     });
-//     return;
-//   }
-//   // Recursively open adjacent cells if the current cell has no adjacent mines
-//   if (game.getAdjacentMines(board, x, y, rows, columns) === 0) {
-//     for (let dx = -1; dx <= 1; dx++) {
-//       for (let dy = -1; dy <= 1; dy++) {
-//         if (dx === 0 && dy === 0) continue;
-//         revealCell(board, x + dx, y + dy);
-//       }
-//     }
-//   }
-// }
 
 </script>
 
