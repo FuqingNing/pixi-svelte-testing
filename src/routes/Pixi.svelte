@@ -18,7 +18,7 @@
  
   // Define game mode ('reveal' or 'flag')
   let mode = 'reveal';
-  //
+  
   let isGameOver = false;
   
   // Subscribe to the board store and check for win condition
@@ -28,7 +28,7 @@
     }
   });
 
-  
+
   function handleRectangleClick(x:any, y:any, event:any) {
 	if (isGameOver) return;
     boardStore.update((board) => {
@@ -47,7 +47,7 @@
   boardStore.set(game.initialize(rows, columns, mineCount));
   boardColors.set(Array(rows).fill(Array(columns).fill(0x808080)));
   isGameOver = false;
-}
+  } 
   function handleGameOver(value:any) {
     isGameOver = value;
   }
@@ -115,6 +115,11 @@
   <button class="my-button toggle" on:click={toggleMode}>Toggle Mode</button>
   <button class="my-button restart" on:click={restartGame}>Restart Game</button>
   <p class="my-text">Current Mode: {mode}</p>
+
+
+
+
+
 <style>
 	.my-button, .my-text, .game-intro {
 	  position: fixed;
