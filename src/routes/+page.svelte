@@ -12,8 +12,6 @@
    $: console.log({ component });
 </script>
 
-abc
-
 {#if browser && component}
     <svelte:component this={component} />
 {/if}
