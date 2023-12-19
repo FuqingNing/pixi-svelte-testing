@@ -1,32 +1,26 @@
 <script lang="ts">
   import {
-    createApp,
-    setAppContext,
     Graphics,
     Text,
     Sprite,
-    createAsset,
-    type Assets
+    createAsset
   } from 'pixi-svelte';
   import * as game from './lib/gameLogic';
   import { rows, columns, mineCount, cellSize } from './lib/gameConstant';
   import { writable } from 'svelte/store';
   import bombImage from './img/bomb.png';
   import flagImage from '$lib/images/flag.png';
-  import StoryPixi from './StoryPixi.svelte';
-
+  import PixiApp from './PixiApp.svelte'
+  
   // Initialize board state
   const boardColors = writable(Array(rows).fill(Array(columns).fill(0x808080)));
   const boardStore = writable(game.initialize(rows, columns, mineCount));
  
-  const context = createApp();
-  let assets: Assets = undefined;
-  const { loaded } = context;
-setAppContext({ ...context, assets });
-
   // Define game mode ('reveal' or 'flag')
   let mode = 'reveal';
-
+  //
+  let isGameOver = false;
+  
   // Subscribe to the board store and check for win condition
   boardStore.subscribe((board) => {
     if (game.checkWin(board, rows, columns)) {
@@ -35,6 +29,7 @@ setAppContext({ ...context, assets });
   });
 
   function handleRectangleClick(x:any, y:any, event:any) {
+	if (isGameOver) return;
     boardStore.update((board) => {
       const newBoard = board.map(row => [...row]);
       const cell = newBoard[y][x];
@@ -42,65 +37,65 @@ setAppContext({ ...context, assets });
       if (mode === 'flag') {
         cell.status = cell.status === 'closed' ? 'flagged' : 'closed';
       } else if (mode === 'reveal' && cell.status === 'closed') {
-        revealCell(newBoard, x, y);
+        game.revealCell(newBoard, x, y,handleGameOver);
       }
-
       return newBoard;
     });
   }
 
-
+  function restartGame() {
+  boardStore.set(game.initialize(rows, columns, mineCount));
+  boardColors.set(Array(rows).fill(Array(columns).fill(0x808080)));
+  isGameOver = false;
+}
+  function handleGameOver(value:any) {
+    isGameOver = value;
+  }
   // Toggle game mode between 'reveal' and 'flag'
   function toggleMode() {
     mode = mode === 'reveal' ? 'flag' : 'reveal';
   }
 
-	function revealCell(board: any, x: any, y: any) {
-		// 确保坐标在边界内
-		if (x < 0 || x >= columns || y < 0 || y >= rows) return;
-		let cell = board[y][x];
-		// 如果格子已经打开或标记了雷，不再处理
-		if (cell.status !== 'closed') return;
-		cell.status = 'open';
-		// 如果点击了雷
-		if (cell.hasMine) {
-			alert('Game Over!');
-			// 揭示所有雷
-			board.forEach((row, rowIndex) => {
-				row.forEach((cell, colIndex) => {
-					if (cell.hasMine) {
-						cell.status = 'open'; // 更新状态为 'open'
-					}
-				});
-			});
-			boardColors.update((colors) => {
-				let newColors = colors.map((row) => [...row]);
-				board.forEach((row, rowIndex) => {
-					row.forEach((cell, colIndex) => {
-						if (cell.hasMine) {
-							// 将带有雷的格子的颜色设置为红色
-							newColors[rowIndex][colIndex] = 0xff0000;
-						}
-					});
-				});
-				return newColors;
-			});
-			return;
-		}
-		// 如果当前格子没有相邻雷，则递归打开相邻格子
-		if (game.getAdjacentMines(board, x, y, rows, columns) === 0) {
-			// 遍历所有相邻的格子
-			for (let dx = -1; dx <= 1; dx++) {
-				for (let dy = -1; dy <= 1; dy++) {
-					if (dx === 0 && dy === 0) continue;
-					revealCell(board, x + dx, y + dy);
-				}
-			}
-		}
-	}
+//   function revealCell(board: any, x: any, y: any) {
+//   // Check if coordinates are within the board boundaries
+//   if (x < 0 || x >= columns || y < 0 || y >= rows) return;
+  
+//   let cell = board[y][x];
+
+//   // Return if the cell is already open or flagged
+//   if (cell.status !== 'closed') return;
+
+//   // Open the cell
+//   cell.status = 'open';
+
+//   // Handle the case when a mine is clicked
+//   if (cell.hasMine) {
+//     alert('Game Over!');
+//     isGameOver = true;
+//     // Reveal all mines
+//     board.forEach((row, rowIndex) => {
+//       row.forEach((cell, colIndex) => {
+//         if (cell.hasMine) {
+//           cell.status = 'open';
+//         }
+//       });
+//     });
+//     return;
+//   }
+//   // Recursively open adjacent cells if the current cell has no adjacent mines
+//   if (game.getAdjacentMines(board, x, y, rows, columns) === 0) {
+//     for (let dx = -1; dx <= 1; dx++) {
+//       for (let dy = -1; dy <= 1; dy++) {
+//         if (dx === 0 && dy === 0) continue;
+//         revealCell(board, x + dx, y + dy);
+//       }
+//     }
+//   }
+// }
+
 </script>
 
-<StoryPixi assets={{ bomb: createAsset({ img: bombImage }), flag: createAsset({ img: flagImage }) }}>
+<PixiApp assets={{ bomb: createAsset({ img: bombImage }), flag: createAsset({ img: flagImage }) }}>
 	{#each $boardStore as row, y}
     {#each row as cell, x}
       {#if cell.status === 'closed'}
@@ -146,25 +141,61 @@ setAppContext({ ...context, assets });
       {/if}
     {/each}
   {/each}
-</StoryPixi>
-<button class="my-button" on:click={toggleMode}>切换模式</button>
-<p class="my-text">当前模式: {mode}</p>
+</PixiApp>
+
+<div class="game-intro">
+	<p>Welcome to the Minesweeper Game!</p>
+	<p>Click on a cell to reveal it, or toggle the mode to mark suspected mines.</p>
+  </div>
+  
+  <button class="my-button toggle" on:click={toggleMode}>Toggle Mode</button>
+  <button class="my-button restart" on:click={restartGame}>Restart Game</button>
+  <p class="my-text">Current Mode: {mode}</p>
 <style>
-	.my-button, .my-text {
-	  position: fixed; /* 固定定位，相对于视口 */
-	  left: 50%; /* 水平居中 */
-	  transform: translateX(-50%); /* 水平居中的偏移量 */
-	  z-index: 10; /* 层级 */
+	.my-button, .my-text, .game-intro {
+	  position: fixed;
+	  left: 50%;
+	  transform: translateX(-50%);
+	  z-index: 10;
+	  text-align: center;
 	}
   
 	.my-button {
-	  bottom: 20px; /* 距离底部 20px */
-	  /* 其他按钮样式... */
+	  background-color: #007bff;
+	  color: white;
+	  border: none;
+	  border-radius: 5px;
+	  padding: 10px 20px;
+	  cursor: pointer;
+	  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	  margin-bottom: 10px; 
+	  transition: background-color 0.3s;
+	}
+  
+	.my-button:hover {
+	  background-color: #0056b3;
+	}
+  
+	.toggle {
+	  bottom: 140px; 
+	}
+  
+	.restart {
+	  bottom: 100px; 
 	}
   
 	.my-text {
-	  bottom: 60px; /* 距离底部 60px，保持在按钮上方 */
-	  color: #333; /* 文字颜色 */
-	  /* 可以添加更多样式，如字体大小、对齐等 */
+	  bottom: 60px; 
+	  color: #333;
+	  font-size: 16px;
+	}
+  
+	.game-intro {
+	  bottom: 180px; 
+	  color: #333;
+	  font-size: 16px;
+	  max-width: 300px; 
+	  padding: 0 10px; 
 	}
   </style>
+  

@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store'
 import type { Writable } from 'svelte/store'
-export const isGameWon = writable(false)
+import { rows, columns, mineCount, cellSize } from './gameConstant';
 
 export function initialize(rows: number, columns: number, mineCount: number) {
   const board = []
@@ -64,17 +64,61 @@ export function getAdjacentMines(
   }
   return count
 }
-export function toggleFlag(
-  board: Array<Array<{ hasMine: boolean; status: string }>>,
+export function revealCell(
+  board: any[], // 更好的是使用具体的类型而非 any
   x: number,
   y: number,
-  currentScore: Writable<number>
+  setIsGameOver: (isGameOver: boolean) => void
 ) {
-  if (board[y][x].status === 'closed') {
-    board[y][x].status = 'flagged' // if cell closed ,flag it
-    currentScore.update((n) => n - 5)
-  } else if (board[y][x].status === 'flagged') {
-    board[y][x].status = 'closed' // unflag
-    currentScore.update((n) => n + 1) // update score
+  // 检查坐标是否在边界内
+  if (x < 0 || x >= columns || y < 0 || y >= rows) return;
+
+  let cell = board[y][x];
+  if (cell.status !== 'closed') return;
+
+  cell.status = 'open';
+
+  if (cell.hasMine) {
+    alert('Game Over!');
+    setIsGameOver(true);
+    // Reveal all mines
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < columns; x++) {
+        if (board[y][x].hasMine) {
+          board[y][x].status = 'open';
+        }
+      }
+    }
+    return;
+  }
+
+  if(getAdjacentMines(board, x, y, rows, columns) === 0) {
+    // Reveal all adjacent cells as they don't have mines
+    for (let yOffset = -1; yOffset <= 1; yOffset++) {
+      for (let xOffset = -1; xOffset <= 1; xOffset++) {
+        if (xOffset === 0 && yOffset === 0) continue;
+        const newX = x + xOffset;
+        const newY = y + yOffset;
+        if (newX >= 0 && newX < columns && newY >= 0 && newY < rows) {
+          revealCell(board, newX, newY, setIsGameOver);
+        }
+      }
+    }
+  }
+}
+export function gameOver(
+  board: any[],
+  setIsGameOver: (value: boolean) => void,
+  rows: number,
+  columns: number
+) {
+  alert('Game Over!');
+  setIsGameOver(true);
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < columns; x++) {
+      if (board[y][x].hasMine) {
+        board[y][x].status = 'open';
+      }
+    }
   }
 }
