@@ -6,7 +6,7 @@
     createAsset
   } from 'pixi-svelte';
   import * as game from './lib/gameLogic';
-  import { rows, columns, mineCount, cellSize } from './lib/gameConstant';
+  import { rows, columns, mineCount, cellSize,difficulties } from './lib/gameConstant';
   import { writable } from 'svelte/store';
   import bombImage from './img/bomb.png';
   import flagImage from '$lib/images/flag.png';
@@ -15,12 +15,11 @@
   // Initialize board state
   const boardColors = writable(Array(rows).fill(Array(columns).fill(0x808080)));
   const boardStore = writable(game.initialize(rows, columns, mineCount));
- 
   // Define game mode ('reveal' or 'flag')
   let mode = 'reveal';
   
   let isGameOver = false;
-  
+  let currentDifficulty = 'intermediate';
   // Subscribe to the board store and check for win condition
   boardStore.subscribe((board) => {
     if (game.checkWin(board, rows, columns)) {
@@ -28,7 +27,19 @@
     }
   });
 
+function startGame() {
+  const { rows, columns, mines } = difficulties[currentDifficulty];
+  boardStore.update((board) => {
+    const newBoard = board.map(row => [...row]);
+    return game.initialize(rows, columns, mines);
+  });
+  boardColors.set(Array(rows).fill(null).map(() => Array(columns).fill(0x808080)));
+}
 
+  function changeDifficulty(difficulty:any) {
+    currentDifficulty = difficulty;
+    startGame();
+  }
   function handleRectangleClick(x:any, y:any, event:any) {
 	if (isGameOver) return;
     boardStore.update((board) => {
@@ -112,16 +123,19 @@
 	<p>Click on a cell to reveal it, or toggle the mode to mark suspected mines.</p>
   </div>
   
+  <select class="difficulty-selector" bind:value={currentDifficulty} on:change={startGame}>
+	<option value="beginner">Beginner</option>
+	<option value="intermediate">Intermediate</option>
+	<option value="expert">Expert</option>
+  </select>
+  
   <button class="my-button toggle" on:click={toggleMode}>Toggle Mode</button>
   <button class="my-button restart" on:click={restartGame}>Restart Game</button>
   <p class="my-text">Current Mode: {mode}</p>
+  
 
-
-
-
-
-<style>
-	.my-button, .my-text, .game-intro {
+  <style>
+	.my-button, .my-text, .game-intro, .difficulty-selector {
 	  position: fixed;
 	  left: 50%;
 	  transform: translateX(-50%);
@@ -145,26 +159,38 @@
 	  background-color: #0056b3;
 	}
   
+	.difficulty-selector {
+	  bottom: 220px; 
+	  width: 200px; 
+	  padding: 5px;
+	  border-radius: 5px;
+	  border: 1px solid #ddd;
+	  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	  background-color: white;
+	  color: #333;
+	  font-size: 16px;
+	}
+  
 	.toggle {
-	  bottom: 140px; 
+	  bottom: 140px;
 	}
   
 	.restart {
-	  bottom: 100px; 
+	  bottom: 100px;
 	}
   
 	.my-text {
-	  bottom: 60px; 
+	  bottom: 60px;
 	  color: #333;
 	  font-size: 16px;
 	}
   
 	.game-intro {
-	  bottom: 180px; 
+	  bottom: 180px;
 	  color: #333;
 	  font-size: 16px;
-	  max-width: 300px; 
-	  padding: 0 10px; 
+	  max-width: 300px;
+	  padding: 0 10px;
 	}
   </style>
   
