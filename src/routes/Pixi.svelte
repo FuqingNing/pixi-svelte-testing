@@ -25,6 +25,7 @@
   boardStore.subscribe((board) => {
     if (game.checkWin(board, rows, columns)) {
       alert('You Win!');
+      isGameOver = true;
     }
   });
 
