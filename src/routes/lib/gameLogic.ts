@@ -69,7 +69,8 @@ export function revealCell(
   setIsGameOver: (isGameOver: boolean) => void
 ) {
   if (x < 0 || x >= columns || y < 0 || y >= rows) return;
-
+  console.log('revealCell', x, y);
+  console.log('board', board);
   let cell = board[y][x];
   if (cell.status !== 'closed') return;
 
